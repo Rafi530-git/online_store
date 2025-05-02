@@ -34,13 +34,11 @@ const Navbar = () => {
                                     <Link className="nav-link mr-0 mr-mb-5" to="/contact">Contact</Link>
                                 </li>
                                 <li className="nav-item">
-                                    {/* <Link className="nav-link" to="/cart">
+                                    <Link className="nav-link" to="/cart">
                                         <i className="fa-solid h5 fa-cart-shopping">
                                         </i>
-                                    </Link> */}
-                                    <a type="button" className="btn nav-link bg-transparent" data-toggle="modal" data-target="#exampleModal">
-                                        <i className=" fa-solid h5 fa-cart-shopping"></i>
-                                    </a>
+                                    </Link>
+                                   
                                 </li>
                                 <li className="nav-item rounded-pill mx-2" style={{ backgroundColor: "#f7444e" }}>
                                     <Link className="nav-link text-white" to="/login">

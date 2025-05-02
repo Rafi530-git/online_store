@@ -1,28 +1,25 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // Import Firestore
-
-//  Yeh galat line : import { db } from "/src/firebase";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAbV4aNGa-5WsmLDBDbWXYuELlVsEm7Mac",
-  authDomain: "onlinebookstore-c18fa.firebaseapp.com",
-  projectId: "onlinebookstore-c18fa",
-  storageBucket: "onlinebookstore-c18fa.firebasestorage.app",
-  messagingSenderId: "296574686122",
-  appId: "1:296574686122:web:162bdc4ac605b0b83cd1d3",
-  measurementId: "G-7QTLH53K2E"
+  apiKey: "AIzaSyDGkMQXZSDJgULlsi-hYBgOnxXl5ZVZdbo",
+  authDomain: "online-bookstore-react-master.firebaseapp.com",
+  projectId: "online-bookstore-react-master",
+  storageBucket: "online-bookstore-react-master.firebasestorage.app",
+  messagingSenderId: "193707491383",
+  appId: "1:193707491383:web:ccef3eadd9b88fe9ae7fb2",
+  measurementId: "G-BR85SG8HD9"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
-// Initialize Firestore and export it
-const db = getFirestore(app);
-
-// Export the db object to use it in other files
-export { db };
-export const test = "Test";  
+export const auth = getAuth(app);
+export const db = getFirestore(app);

@@ -1,137 +1,151 @@
 import React, { useEffect, useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { useNavigate } from "react-router-dom";
+// inside the component
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Image,
+  Alert,
+  Badge,
+} from "react-bootstrap";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
-
-  // Load cart from localStorage on component mount
+  const navigate = useNavigate();
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartItems(cart);
+    const fetchCart = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to view your cart.");
+        return;
+      }
+
+      const userCartRef = doc(db, "member", user.uid);
+      const userDoc = await getDoc(userCartRef);
+
+      if (userDoc.exists()) {
+        setCartItems(userDoc.data().cart || []);
+      }
+    };
+
+    fetchCart();
   }, []);
 
-  // Sync cartItems to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+  const updateCart = async (updatedCart) => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-  // Increase quantity
+    const userCartRef = doc(db, "member", user.uid);
+    await setDoc(userCartRef, { cart: updatedCart }, { merge: true });
+    setCartItems(updatedCart);
+  };
+
   const increaseQuantity = (id) => {
     const updatedCart = cartItems.map((item) =>
       item.id === id ? { ...item, quantity: item.quantity + 1 } : item
     );
-    setCartItems(updatedCart);
+    updateCart(updatedCart);
   };
 
-  // Decrease quantity
   const decreaseQuantity = (id) => {
     const updatedCart = cartItems.map((item) =>
-      item.id === id && item.quantity > 1
-        ? { ...item, quantity: item.quantity - 1 }
+      item.id === id
+        ? { ...item, quantity: Math.max(1, item.quantity - 1) }
         : item
     );
-    setCartItems(updatedCart);
+    updateCart(updatedCart);
   };
 
-  // ✅ Remove specific item only
   const removeFromCart = (id) => {
     const updatedCart = cartItems.filter((item) => item.id !== id);
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart)); // Sync to localStorage
+    updateCart(updatedCart);
   };
 
-  // Calculate total price
-  const calculateTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  };
+  const calculateTotal = () =>
+    cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <div>
-      <h1>Your Cart</h1>
+    <Container className="my-4">
+      <h2 className="text-center mb-4">🛒 Your Cart</h2>
       {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
+        <Alert variant="info">Your cart is empty.</Alert>
       ) : (
         <>
-          {cartItems.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "10px",
-                margin: "10px",
-                width: "250px",
-                position: "relative",
-              }}
+          <Row xs={1} md={2} lg={3} className="g-4">
+            {cartItems.map((item) => (
+              <Col key={item.id}>
+                <Card className="h-100 shadow-sm">
+                  <Card.Img
+                    variant="top"
+                    src={item.image}
+                    alt={item.bookName}
+                    style={{ height: "200px", objectFit: "cover" }}
+                  />
+                  <Card.Body>
+                    <Card.Title>{item.bookName}</Card.Title>
+                    <Card.Text>
+                      <strong>Price:</strong> ${item.price}
+                      <br />
+                      <strong>Quantity:</strong>{" "}
+                      <Badge bg="secondary">{item.quantity}</Badge>
+                    </Card.Text>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <Button
+                          size="sm"
+                          variant="outline-primary"
+                          onClick={() => increaseQuantity(item.id)}
+                          className="me-2"
+                        >
+                          +
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline-primary"
+                          onClick={() => decreaseQuantity(item.id)}
+                        >
+                          -
+                        </Button>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+
+          <div className="mt-4 text-end">
+            <h4>
+              Total:{" "}
+              <span className="text-success">
+                ${calculateTotal().toFixed(2)}
+              </span>
+            </h4>
+            <Button
+              variant="success"
+              size="lg"
+              className="mt-2"
+              onClick={() => navigate("/checkout")}
             >
-              <img
-                src={item.image}
-                alt={item.title}
-                style={{ width: "100%", height: "150px", objectFit: "cover" }}
-              />
-              <h2>{item.title}</h2>
-              <p>Price: ${item.price}</p>
-              <p>Quantity: {item.quantity}</p>
-
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={() => decreaseQuantity(item.id)}
-                  style={{
-                    backgroundColor: "#f0ad4e",
-                    color: "white",
-                    border: "none",
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  -
-                </button>
-
-                <button
-                  onClick={() => increaseQuantity(item.id)}
-                  style={{
-                    backgroundColor: "#5cb85c",
-                    color: "white",
-                    border: "none",
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  +
-                </button>
-
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  style={{
-                    backgroundColor: "red",
-                    color: "white",
-                    border: "none",
-                    padding: "5px 10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Total Price Section */}
-          <div
-            style={{
-              marginTop: "30px",
-              fontSize: "20px",
-              fontWeight: "bold",
-              borderTop: "2px solid black",
-              paddingTop: "20px",
-            }}
-          >
-            Total: ${calculateTotal().toFixed(2)}
+              Proceed to Checkout
+            </Button>
           </div>
         </>
       )}
-    </div>
+    </Container>
   );
 };
 
